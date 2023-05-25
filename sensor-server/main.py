@@ -66,14 +66,21 @@ while True:
     for (top, right, bottom, left), face_encoding in zip(
         face_locations, face_encodings
     ):
-        # 顔が誰のものであるかを判定する
+        # 全ての既知の顔に対して、顔の距離を計算する
+        # その際、判定の厳しさを、デフォルトより厳しい0.45に設定する
         matches = face_recognition.compare_faces(
-            known_face_encodings, face_encoding, 0.8
+            known_face_encodings, face_encoding, 0.45
         )
+        distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 
-        if True in matches:
-            first_match_index = matches.index(True)
-            person_id = known_face_ids[first_match_index]
+        print(f"matches: {matches}")
+        print(f"distances: {distances}")
+
+        # 最も距離が近いものを選ぶ
+        best_match_index = np.argmin(distances)
+        best_match_distance = distances[best_match_index]
+        if matches[best_match_index]:
+            person_id = known_face_ids[best_match_index]
         else:
             person_id = "Unknown"
 
@@ -81,7 +88,7 @@ while True:
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
         cv2.putText(
             frame,
-            person_id,
+            f"{person_id} ({best_match_distance:.4f})",
             (left + 6, bottom - 6),
             cv2.FONT_HERSHEY_DUPLEX,
             1.0,
@@ -89,7 +96,7 @@ while True:
             1,
         )
 
-    # FPSを計算して表示する
+    # FPSと入力画像の解像度を計算して表示する
     frame_counter += 1
     elapsed_time = time.time() - start_time
     if elapsed_time >= 1:
@@ -98,7 +105,7 @@ while True:
         start_time = time.time()
     cv2.putText(
         frame,
-        f"FPS: {fps:.2f}",
+        f"FPS: {fps:.2f}, Source: {frame.shape[1]}x{frame.shape[0]}",
         (10, 30),
         cv2.FONT_HERSHEY_DUPLEX,
         1.0,
