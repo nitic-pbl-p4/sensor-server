@@ -41,6 +41,8 @@ known_face_encodings, known_face_ids = train_face_recognizer("assets")
 fps = 0
 frame_counter = 0
 start_time = time.time()
+resize_factor = 0.5  # フレームをリサイズする際にかける係数
+reverse_resize_factor = 1 / resize_factor
 
 # カメラからの映像を取得する
 # カメラの設定を行います。0は通常、システムのデフォルトのカメラを指します。
@@ -53,10 +55,13 @@ while True:
     if not ret:
         break
 
+    # 処理の高速化のために、フレームをリサイズする
+    resized_frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
+
     # 顔を検出する
     # OpenCVはBGRで画像を読み込むので、face_recognitionが期待するRGB形式に変換します。
     # Refer: https://github.com/ageitgey/face_recognition/issues/1497#issuecomment-1529567951
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    rgb_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
     # 顔の位置を検出します。
     face_locations = face_recognition.face_locations(rgb_frame)
     if len(face_locations) == 0:
@@ -93,7 +98,13 @@ while True:
             person_id = "Unknown"
 
         # 顔の領域とそのIDを表示する
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+        cv2.rectangle(
+            frame,
+            (int(left * reverse_resize_factor), int(top * reverse_resize_factor)),
+            (int(right * reverse_resize_factor), int(bottom * reverse_resize_factor)),
+            (0, 0, 255),
+            2,
+        )
         cv2.putText(
             frame,
             f"{person_id} ({best_match_distance:.4f})",
@@ -113,7 +124,7 @@ while True:
         start_time = time.time()
     cv2.putText(
         frame,
-        f"FPS: {fps:.2f}, Source: {frame.shape[1]}x{frame.shape[0]}",
+        f"FPS: {fps:.2f}, Source: {frame.shape[1]}x{frame.shape[0]}, Resize: x{resize_factor}",
         (10, 30),
         cv2.FONT_HERSHEY_DUPLEX,
         1.0,
