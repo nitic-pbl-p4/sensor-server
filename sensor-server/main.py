@@ -3,16 +3,21 @@ import os
 import cv2
 import numpy as np
 import time
+from logger import *
 
 # assets/[personId]/[imageId].(png|jpg)
 
 
 # 顔識別器を訓練する
 def train_face_recognizer(root_dir):
+    logging.info("顔識別器の学習を開始します")
+
     known_face_encodings = []
     known_face_ids = []
 
-    for person_id in os.listdir(root_dir):
+    for person_id in track(
+        os.listdir(root_dir), description=f"全顔画像ディレクトリ {root_dir} を読み込み中..."
+    ):
         person_dir = os.path.join(root_dir, person_id)
 
         if os.path.isdir(person_dir):
@@ -25,6 +30,7 @@ def train_face_recognizer(root_dir):
                     known_face_encodings.append(face_encodings[0])
                     known_face_ids.append(person_id)
 
+    logging.info("顔識別器の学習が完了しました")
     return known_face_encodings, known_face_ids
 
 
@@ -35,6 +41,8 @@ known_face_encodings, known_face_ids = train_face_recognizer("assets")
 fps = 0
 frame_counter = 0
 start_time = time.time()
+resize_factor = 0.5  # フレームをリサイズする際にかける係数
+reverse_resize_factor = 1 / resize_factor
 
 # カメラからの映像を取得する
 # カメラの設定を行います。0は通常、システムのデフォルトのカメラを指します。
@@ -47,19 +55,22 @@ while True:
     if not ret:
         break
 
+    # 処理の高速化のために、フレームをリサイズする
+    resized_frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
+
     # 顔を検出する
     # OpenCVはBGRで画像を読み込むので、face_recognitionが期待するRGB形式に変換します。
     # Refer: https://github.com/ageitgey/face_recognition/issues/1497#issuecomment-1529567951
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    rgb_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
     # 顔の位置を検出します。
     face_locations = face_recognition.face_locations(rgb_frame)
     if len(face_locations) == 0:
-        print("No faces were detected in the frame.")
+        logging.info("フレーム内に顔が検出されませんでした")
     else:
-        print(f"Detected {len(face_locations)} face(s) in the frame.")
+        logging.info(f"{len(face_locations)} 個の顔をフレーム内に検出しました")
         # Print face locations
-        for top, right, bottom, left in face_locations:
-            print(f"({top}, {right}, {bottom}, {left})")
+        # for top, right, bottom, left in face_locations:
+        # print(f"({top}, {right}, {bottom}, {left})")
 
     face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
@@ -73,8 +84,10 @@ while True:
         )
         distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 
-        print(f"matches: {matches}")
-        print(f"distances: {distances}")
+        logging.info(f"合致結果: {highlighter(repr(matches))}", extra={"markup": True})
+        logging.info(
+            f"参考画像との距離: {highlighter(repr(distances))}", extra={"markup": True}
+        )
 
         # 最も距離が近いものを選ぶ
         best_match_index = np.argmin(distances)
@@ -85,7 +98,13 @@ while True:
             person_id = "Unknown"
 
         # 顔の領域とそのIDを表示する
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+        cv2.rectangle(
+            frame,
+            (int(left * reverse_resize_factor), int(top * reverse_resize_factor)),
+            (int(right * reverse_resize_factor), int(bottom * reverse_resize_factor)),
+            (0, 0, 255),
+            2,
+        )
         cv2.putText(
             frame,
             f"{person_id} ({best_match_distance:.4f})",
@@ -105,7 +124,7 @@ while True:
         start_time = time.time()
     cv2.putText(
         frame,
-        f"FPS: {fps:.2f}, Source: {frame.shape[1]}x{frame.shape[0]}",
+        f"FPS: {fps:.2f}, Source: {frame.shape[1]}x{frame.shape[0]}, Resize: x{resize_factor}",
         (10, 30),
         cv2.FONT_HERSHEY_DUPLEX,
         1.0,
