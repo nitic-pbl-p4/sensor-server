@@ -3,16 +3,21 @@ import os
 import cv2
 import numpy as np
 import time
+from logger import *
 
 # assets/[personId]/[imageId].(png|jpg)
 
 
 # 顔識別器を訓練する
 def train_face_recognizer(root_dir):
+    logging.info("顔識別器の学習を開始します")
+
     known_face_encodings = []
     known_face_ids = []
 
-    for person_id in os.listdir(root_dir):
+    for person_id in track(
+        os.listdir(root_dir), description=f"全顔画像ディレクトリ {root_dir} を読み込み中..."
+    ):
         person_dir = os.path.join(root_dir, person_id)
 
         if os.path.isdir(person_dir):
@@ -25,6 +30,7 @@ def train_face_recognizer(root_dir):
                     known_face_encodings.append(face_encodings[0])
                     known_face_ids.append(person_id)
 
+    logging.info("顔識別器の学習が完了しました")
     return known_face_encodings, known_face_ids
 
 
@@ -54,12 +60,12 @@ while True:
     # 顔の位置を検出します。
     face_locations = face_recognition.face_locations(rgb_frame)
     if len(face_locations) == 0:
-        print("No faces were detected in the frame.")
+        logging.info("フレーム内に顔が検出されませんでした")
     else:
-        print(f"Detected {len(face_locations)} face(s) in the frame.")
+        logging.info(f"{len(face_locations)} 個の顔をフレーム内に検出しました")
         # Print face locations
-        for top, right, bottom, left in face_locations:
-            print(f"({top}, {right}, {bottom}, {left})")
+        # for top, right, bottom, left in face_locations:
+        # print(f"({top}, {right}, {bottom}, {left})")
 
     face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
@@ -73,8 +79,10 @@ while True:
         )
         distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 
-        print(f"matches: {matches}")
-        print(f"distances: {distances}")
+        logging.info(f"合致結果: {highlighter(repr(matches))}", extra={"markup": True})
+        logging.info(
+            f"参考画像との距離: {highlighter(repr(distances))}", extra={"markup": True}
+        )
 
         # 最も距離が近いものを選ぶ
         best_match_index = np.argmin(distances)
