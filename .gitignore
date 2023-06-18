@@ -114,3 +114,5 @@ cython_debug/
 
 # assets
 assets
+
+*.pem
