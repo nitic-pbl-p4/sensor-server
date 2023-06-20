@@ -4,25 +4,29 @@ import cv2
 import numpy as np
 import time
 from logger import *
+import pickle
 
 # assets/[personId]/[imageId].(png|jpg)
 
 
 # 顔識別器を訓練する
-def train_face_recognizer(root_dir):
+def train_face_recognizer(asset_dir="assets", cache_dir="cache"):
+    cache_file_path = os.path.join(cache_dir, "face_recognizer.pkl")
+
     logging.info("顔識別器の学習を開始します")
 
     known_face_encodings = []
     known_face_ids = []
 
     for person_id in track(
-        os.listdir(root_dir), description=f"全顔画像ディレクトリ {root_dir} を読み込み中..."
+        os.listdir(asset_dir), description=f"全顔画像ディレクトリ {asset_dir} を読み込み中..."
     ):
-        person_dir = os.path.join(root_dir, person_id)
+        person_dir = os.path.join(asset_dir, person_id)
 
         if os.path.isdir(person_dir):
             for image_name in os.listdir(person_dir):
                 image_path = os.path.join(person_dir, image_name)
+                logging.debug(f"画像 {image_path} を読み込み中...")
                 image = face_recognition.load_image_file(image_path)
                 face_encodings = face_recognition.face_encodings(image)
 
@@ -31,18 +35,45 @@ def train_face_recognizer(root_dir):
                     known_face_ids.append(person_id)
 
     logging.info("顔識別器の学習が完了しました")
+
+    # キャッシュするPythonオブジェクトを辞書にまとめる
+    logging.info(f"学習した顔識別器をキャッシュファイル {cache_file_path} に保存します")
+    cache_data = {
+        "known_face_encodings": known_face_encodings,
+        "known_face_ids": known_face_ids,
+    }
+    with open(cache_file_path, "wb") as f:
+        pickle.dump(cache_data, f)
     return known_face_encodings, known_face_ids
 
 
+# 顔識別器を読み込む
+def load_face_recognizer(cache_dir="cache"):
+    cache_file_path = os.path.join(cache_dir, "face_recognizer.pkl")
+
+    logging.info(f"キャッシュファイル {cache_file_path} から顔識別器を読み込みます")
+    # もしキャッシュファイルが存在しない場合は、学習する
+    if not os.path.exists(cache_file_path):
+        logging.info("キャッシュファイルが存在しないため、顔識別器を学習します")
+        return train_face_recognizer()
+
+    with open(cache_file_path, "rb") as f:
+        cache_data = pickle.load(f)
+    return cache_data["known_face_encodings"], cache_data["known_face_ids"]
+
+
 # 与えられた判断材料の顔写真から、顔識別器を訓練する
-known_face_encodings, known_face_ids = train_face_recognizer("assets")
+known_face_encodings, known_face_ids = load_face_recognizer()
+
+# 推論高速化のための定数
+resize_factor = 0.25  # フレームをリサイズする際にかける係数
+reverse_resize_factor = int(1 / resize_factor)
 
 # FPS計算用の変数
 fps = 0
 frame_counter = 0
 start_time = time.time()
-resize_factor = 0.5  # フレームをリサイズする際にかける係数
-reverse_resize_factor = 1 / resize_factor
+
 
 # カメラからの映像を取得する
 # カメラの設定を行います。0は通常、システムのデフォルトのカメラを指します。
@@ -84,8 +115,8 @@ while True:
         )
         distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 
-        logging.info(f"合致結果: {highlighter(repr(matches))}", extra={"markup": True})
-        logging.info(
+        logging.debug(f"合致結果: {highlighter(repr(matches))}", extra={"markup": True})
+        logging.debug(
             f"参考画像との距離: {highlighter(repr(distances))}", extra={"markup": True}
         )
 
@@ -100,15 +131,15 @@ while True:
         # 顔の領域とそのIDを表示する
         cv2.rectangle(
             frame,
-            (int(left * reverse_resize_factor), int(top * reverse_resize_factor)),
-            (int(right * reverse_resize_factor), int(bottom * reverse_resize_factor)),
-            (0, 0, 255),
+            (left * reverse_resize_factor, top * reverse_resize_factor),
+            (right * reverse_resize_factor, bottom * reverse_resize_factor),
+            (0, 255, 0),
             2,
         )
         cv2.putText(
             frame,
             f"{person_id} ({best_match_distance:.4f})",
-            (left + 6, bottom - 6),
+            (left * reverse_resize_factor + 6, bottom * reverse_resize_factor - 6),
             cv2.FONT_HERSHEY_DUPLEX,
             1.0,
             (255, 255, 255),
@@ -124,10 +155,10 @@ while True:
         start_time = time.time()
     cv2.putText(
         frame,
-        f"FPS: {fps:.2f}, Source: {frame.shape[1]}x{frame.shape[0]}, Resize: x{resize_factor}",
+        f"fps: {fps:.2f}, src: {frame.shape[1]}x{frame.shape[0]}, resize: x{resize_factor}",
         (10, 30),
         cv2.FONT_HERSHEY_DUPLEX,
-        1.0,
+        0.75,
         (0, 255, 0),
         1,
     )
