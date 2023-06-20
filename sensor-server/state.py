@@ -29,7 +29,7 @@ class Book:
 class State:
     def __init__(self) -> None:
         self._person: Optional[Person] = None
-        self._book_queue: Queue[Book] = Queue(maxsize=20)
+        self._book_queue: Queue[Book] = Queue(maxsize=100)
 
     @property
     def person(self) -> Optional[Person]:
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     my_obj.person = Person(id="123", timestamp=datetime.now())
     console.log(f"my_obj.get_person(): {highlighter(repr(my_obj.get_person()))}")
 
-    for i in range(50):
+    for i in range(120):
         my_obj.add_book(Book(id=f"book{i}", timestamp=datetime.now()))
 
     console.log(f"my_obj.get_books(): {highlighter(repr(my_obj.get_books()))}")
