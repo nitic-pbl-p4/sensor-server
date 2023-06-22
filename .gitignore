@@ -112,7 +112,11 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# assets
+# 学習用のデータセット
 assets
 
+# 顔識別器などのキャッシュファイル
+cache
+
+# 秘密鍵・公開鍵ファイル
 *.pem
