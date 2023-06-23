@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 import time
-from logger import *
+from logger import logging, track, highlighter
 import pickle
 
 # assets/[personId]/[imageId].(png|jpg)

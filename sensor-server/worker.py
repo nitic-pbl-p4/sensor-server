@@ -1,11 +1,10 @@
 from threading import Thread, Event
 import time
 from typing import Dict
-from logger import *
+from logger import logging, console, highlighter
 from state import State, Person, Book
 import datetime
 import uuid
-import cv2
 
 
 def worker_sample1(events: Dict[str, Event], state: State):
