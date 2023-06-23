@@ -5,25 +5,25 @@ from logger import *
 
 
 class Person:
-    def __init__(self, id: str, timestamp: datetime) -> None:
+    def __init__(self, id: str, seenAt: datetime) -> None:
         if len(id) < 1:
             raise ValueError("Invalid id for person")
         self.id = id
-        self.timestamp = timestamp
+        self.seenAt = seenAt
 
     def __repr__(self):
-        return f"Person(id={self.id}, timestamp={self.timestamp})"
+        return f"Person(id={self.id}, seenAt={self.seenAt})"
 
 
 class Book:
-    def __init__(self, id: str, timestamp: datetime) -> None:
+    def __init__(self, id: str, readAt: datetime) -> None:
         if len(id) < 1:
             raise ValueError("Invalid id for book")
         self.id = id
-        self.timestamp = timestamp
+        self.readAt = readAt
 
     def __repr__(self):
-        return f"Book(id={self.id}, timestamp={self.timestamp})"
+        return f"Book(id={self.id}, readAt={self.readAt})"
 
 
 class State:
@@ -70,10 +70,10 @@ class State:
 if __name__ == "__main__":
     my_obj = State()
 
-    my_obj.person = Person(id="123", timestamp=datetime.now())
+    my_obj.person = Person(id="123", seenAt=datetime.now())
     console.log(f"my_obj.get_person(): {highlighter(repr(my_obj.get_person()))}")
 
     for i in range(120):
-        my_obj.add_book(Book(id=f"book{i}", timestamp=datetime.now()))
+        my_obj.add_book(Book(id=f"book{i}", readAt=datetime.now()))
 
     console.log(f"my_obj.get_books(): {highlighter(repr(my_obj.get_books()))}")
