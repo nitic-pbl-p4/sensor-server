@@ -1,0 +1,42 @@
+name: Blackでのフォーマットの確認
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  flake8-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: コードをチェックアウトする
+        uses: actions/checkout@v2
+
+      - name: Pythonを導入する
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+
+      - name: Poetryを導入する
+        run: |
+          curl -sSL https://install.python-poetry.org | python -
+
+      - name: 依存関係をキャッシュする
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Poetryを使って依存関係をインストールする
+        run: |
+          poetry install
+
+      - name: Blackでフォーマットを確認する
+        run: |
+          poetry run black --check .
