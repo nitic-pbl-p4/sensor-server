@@ -1,7 +1,7 @@
 from typing import Optional, List
 from datetime import datetime
 from queue import Queue
-from logger import *
+from logger import console, highlighter
 
 
 class Person:

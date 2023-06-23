@@ -1,7 +1,6 @@
 from rich.logging import RichHandler
 import logging
 from rich.console import Console
-from rich.progress import track
 from rich.highlighter import ReprHighlighter
 
 # Richを用いたロガー用の設定
