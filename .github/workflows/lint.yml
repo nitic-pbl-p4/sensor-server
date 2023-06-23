@@ -1,4 +1,4 @@
-name: Blackでのフォーマットの確認
+name: Flake8でのリント
 
 on:
   push:
@@ -37,6 +37,6 @@ jobs:
         run: |
           poetry install
 
-      - name: Blackでフォーマットを確認する
+      - name: Flake8でリントを実行する
         run: |
-          poetry run black --check .
+          poetry run flake8 --exit-zero --statistics

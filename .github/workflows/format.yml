@@ -1,4 +1,4 @@
-name: Flake8でのリント
+name: Blackでのフォーマットの確認
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  flake8-lint:
+  black-format:
     runs-on: ubuntu-latest
 
     steps:
@@ -37,6 +37,6 @@ jobs:
         run: |
           poetry install
 
-      - name: Flake8でリントを実行する
+      - name: Blackでフォーマットを確認する
         run: |
-          poetry run flake8 --exit-zero --statistics
+          poetry run black --check .
