@@ -108,16 +108,17 @@ while True:
     for (top, right, bottom, left), face_encoding in zip(
         face_locations, face_encodings
     ):
+        area = (bottom - top) * (right - left)
         # 全ての既知の顔に対して、顔の距離を計算する
         # その際、判定の厳しさを、デフォルトより厳しい0.45に設定する
         matches = face_recognition.compare_faces(
-            known_face_encodings, face_encoding, 0.45
+            known_face_encodings, face_encoding, 0.5
         )
         distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 
-        logging.debug(f"合致結果: {highlighter(repr(matches))}", extra={"markup": True})
-        logging.debug(
-            f"参考画像との距離: {highlighter(repr(distances))}", extra={"markup": True}
+        logging.info(
+            f"合致結果: {highlighter(repr(matches))}\n参考画像との距離: {highlighter(repr(distances))}",
+            extra={"markup": True},
         )
 
         # 最も距離が近いものを選ぶ
@@ -145,6 +146,15 @@ while True:
             (255, 255, 255),
             1,
         )
+        cv2.putText(
+            frame,
+            f"Area: {area}",
+            (left * reverse_resize_factor + 6, top * reverse_resize_factor - 6),
+            cv2.FONT_HERSHEY_DUPLEX,
+            1.0,
+            (0, 255, 0),
+            1,
+        )
 
     # FPSと入力画像の解像度を計算して表示する
     frame_counter += 1
@@ -158,7 +168,7 @@ while True:
         f"fps: {fps:.2f}, src: {frame.shape[1]}x{frame.shape[0]}, resize: x{resize_factor}",
         (10, 30),
         cv2.FONT_HERSHEY_DUPLEX,
-        0.75,
+        1.0,
         (0, 255, 0),
         1,
     )
