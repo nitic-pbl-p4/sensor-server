@@ -73,7 +73,7 @@ def face_recognition_worker(events: Dict[str, Event], state: State):
     known_face_encodings, known_face_ids = load_face_recognizer()
 
     # 推論高速化のための定数
-    resize_factor = 0.25  # フレームをリサイズする際にかける係数
+    resize_factor = 0.5  # フレームをリサイズする際にかける係数
     reverse_resize_factor = int(1 / resize_factor)
 
     # FPS計算用の変数
