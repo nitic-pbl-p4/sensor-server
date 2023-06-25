@@ -79,6 +79,9 @@ def face_recognition_worker(events: Dict[str, Event], state: State):
     frame_counter = 0
     start_time = time.time()
 
+    # 顔認証の係数
+    tolerance = 0.45  # 低いほど厳しい
+
     # ウィンドウを作成する
     window_name = "Shelfree Face Recognition"
     cv2.namedWindow(window_name)
@@ -119,12 +122,11 @@ def face_recognition_worker(events: Dict[str, Event], state: State):
         ):
             # 全ての既知の顔に対して、顔の距離を計算する
             # その際、判定の厳しさを、デフォルトより厳しい0.45に設定する
-            matches = face_recognition.compare_faces(
-                known_face_encodings, face_encoding, 0.45
-            )
             distances = face_recognition.face_distance(
                 known_face_encodings, face_encoding
             )
+            # 顔の距離がtoleranceより小さいかどうかを判定する
+            matches = distances <= tolerance
 
             logging.debug(f"合致結果: {highlighter(repr(matches))}", extra={"markup": True})
             logging.debug(
