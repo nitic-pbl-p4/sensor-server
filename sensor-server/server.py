@@ -7,6 +7,8 @@ import pendulum
 from threading import Event
 from typing import Dict
 from state import State
+from rich.syntax import Syntax
+from logger import console
 
 # 公開鍵と秘密鍵の読み込み
 
@@ -58,18 +60,25 @@ def server_worker(events: Dict[str, Event], state: State):
         data["signature"] = signature_str
 
         # 署名付きのJSONデータを表示する
-        print(json.dumps(data, indent=4))
+        highlighted_json_str = Syntax(
+            json.dumps(data, indent=2, ensure_ascii=False), "json", theme="monokai"
+        )
+        console.log(highlighted_json_str)
 
         return data
 
     def get_face_data():
-        # 顔認証データを取得する処理を実装する
-        # return {"id": "johnsmith", "seenAt": "2023-05-21T14:00:00Z"}
-        return state.get_person()
+        # 顔認証データを取得して、JSONシリアライズ可能な形式に変換する処理を実装する
+        # e.g. {"id": "johnsmith", "seenAt": "2023-05-21T14:00:00Z"}
+        person = state.get_person()
+        return {
+            "id": person.id,
+            "seenAt": person.seenAt.isoformat(),
+        }
 
     def get_rfid_data():
-        # RFIDデータを取得する処理を実装する
-        # return [
+        # RFIDデータを取得して、JSONシリアライズ可能な形式に変換する処理を実装する
+        # e.g. [
         #     {
         #         "rfid": "550e8400-e29b-41d4-a716-446655440000",
         #         "readAt": "2023-05-21T13:50:00Z",
@@ -79,7 +88,14 @@ def server_worker(events: Dict[str, Event], state: State):
         #         "readAt": "2023-05-21T13:51:00Z",
         #     },
         # ]
-        return state.get_books()
+        books = state.get_books()
+        return [
+            {
+                "rfid": book.id,
+                "readAt": book.readAt.isoformat(),
+            }
+            for book in books
+        ]
 
     # この関数内でFlaskサーバを起動します
     # threaded=Trueにすることで、複数のリクエストを同時に処理することができます
