@@ -9,6 +9,8 @@ import pickle
 from threading import Event
 from typing import Dict
 from state import State
+import datetime
+from state import Person
 
 # assets/[personId]/[imageId].(png|jpg)
 
@@ -117,9 +119,16 @@ def face_recognition_worker(events: Dict[str, Event], state: State):
 
         face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
+        face_areas = []
+        face_person_ids = []
+
         for (top, right, bottom, left), face_encoding in zip(
             face_locations, face_encodings
         ):
+            # 顔の面積を計算する
+            face_area = (bottom - top) * (right - left)
+            face_areas.append(face_area)
+
             # 全ての既知の顔に対して、顔の距離を計算する
             # その際、判定の厳しさを、デフォルトより厳しい0.45に設定する
             distances = face_recognition.face_distance(
@@ -139,9 +148,10 @@ def face_recognition_worker(events: Dict[str, Event], state: State):
             if matches[best_match_index]:
                 person_id = known_face_ids[best_match_index]
             else:
-                person_id = "Unknown"
+                person_id = None
+            face_person_ids.append(person_id)
 
-            # 顔の領域とそのIDを表示する
+            # 顔の領域とそのIDと領域を表示する
             cv2.rectangle(
                 frame,
                 (left * reverse_resize_factor, top * reverse_resize_factor),
@@ -158,6 +168,26 @@ def face_recognition_worker(events: Dict[str, Event], state: State):
                 (255, 255, 255),
                 1,
             )
+            cv2.putText(
+                frame,
+                f"Area: {face_area}",
+                (left * reverse_resize_factor + 6, top * reverse_resize_factor - 6),
+                cv2.FONT_HERSHEY_DUPLEX,
+                1.0,
+                (255, 255, 255),
+                1,
+            )
+
+        # 最も面積の大きい顔を選ぶ
+        if len(face_areas) > 0:
+            max_area_index = np.argmax(face_areas)
+            max_area_person_id = face_person_ids[max_area_index]
+            # もし、最も面積の大きい顔が既知の顔だったら、状態を更新する
+            if max_area_person_id:
+                state.person = Person(
+                    id=max_area_person_id, seenAt=datetime.datetime.now()
+                )
+                logging.info(f"顔認証の状態を更新しました: {highlighter(repr(state))}")
 
         # FPSと入力画像の解像度を計算して表示する
         frame_counter += 1
