@@ -156,7 +156,9 @@ def face_recognition_worker(events: Dict[str, Event], state: State):
                 frame,
                 (left * reverse_resize_factor, top * reverse_resize_factor),
                 (right * reverse_resize_factor, bottom * reverse_resize_factor),
-                (0, 255, 0),
+                # もし、最も距離が近い顔が既知の顔だったら、緑色の枠を表示する
+                # そうでなければ、オレンジの枠を表示する
+                (0, 255, 0) if person_id else (0, 165, 255),
                 2,
             )
             cv2.putText(
