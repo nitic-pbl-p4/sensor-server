@@ -29,6 +29,12 @@ poetry shell
 poetry install
 ```
 
+最後に、実行しましょう。
+
+```bash
+python sensor-server/main.py
+```
+
 ---
 
 ### VSCode 向けの設定
