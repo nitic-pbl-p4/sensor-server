@@ -3,6 +3,7 @@
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
   "python.formatting.provider": "none",
+  "python.venvPath": "/home/pi/.cache/pypoetry/virtualenvs",
   "commit-message-editor.staticTemplate": [
     "{type}{scope} {description}",
     "",
