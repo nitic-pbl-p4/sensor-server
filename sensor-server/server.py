@@ -71,6 +71,8 @@ def server_worker(events: Dict[str, Event], state: State):
         # 顔認証データを取得して、JSONシリアライズ可能な形式に変換する処理を実装する
         # e.g. {"id": "johnsmith", "seenAt": "2023-05-21T14:00:00Z"}
         person = state.get_person()
+        if not person:
+            return None
         return {
             "id": person.id,
             "seenAt": person.seenAt.isoformat(),
@@ -89,13 +91,8 @@ def server_worker(events: Dict[str, Event], state: State):
         #     },
         # ]
         books = state.get_books()
-        return [
-            {
-                "rfid": book.id,
-                "readAt": book.readAt.isoformat(),
-            }
-            for book in books
-        ]
+        serializable_books = {k: v.isoformat() for k, v in books.items()}
+        return serializable_books
 
     # この関数内でFlaskサーバを起動します
     # threaded=Trueにすることで、複数のリクエストを同時に処理することができます
