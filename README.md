@@ -77,3 +77,9 @@ poetry config virtualenvs.path # /Users/ReoHakase/Library/Caches/pypoetry/virtua
 └── tests
    └── __init__.py
 ```
+
+## HTTP GET /
+
+```json
+{"book":{"7663cf25":"2023-08-08T13:00:28.181921"},"person":{"id":"reohakuta","seenAt":"2023-08-08T13:00:26.958482"},"signature":"dvYOdXIZp9bOSm7o0gaPUEWfP96S5zWyJi2ZzQxUjhRgp4KktJy2Xx/sUtRn3hMkRjn3kb2qVz3DI+ePsOrYerrVa9j45dGvsra0P2dxXtd9gc9ifK43dL8Ku96LUIeNFj7jcVsRJ4qfLtR+Z3QADCt0uFFl+bG6eQr7+dYnfzbJV9e6ia2t+IZwYJ/fZrwgMa9xRZq2mfTrzYXlUDKiTbKitN7uNxT2oklaR2sMdLB/vNHsMt06uf/JtJZQxA5Cs4N4gEcLFlMrhqeBHuQRvj/3VsnJUWvHqJauXureTWOMaPuEfXMl42D+5e8I2FeHxm5AnPnE96T+SpihOZX4cQ==","timestamp":"2023-08-08T13:00:35.371409+09:00"}
+```

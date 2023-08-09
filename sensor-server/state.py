@@ -29,7 +29,7 @@ class Book:
 class State:
     def __init__(self) -> None:
         self._person: Optional[Person] = None
-        self._book_queue: Queue[Book] = Queue(maxsize=100)
+        self._book_dict = {}
 
     @property
     def person(self) -> Optional[Person]:
@@ -49,22 +49,22 @@ class State:
         # bookがBookのインスタンスか確かめる
         if not isinstance(book, Book):
             raise ValueError("Invalid value for book")
-        # book_queueにbookを追加する
-        # 挿入できる余裕がない場合は、一つ削除する
-        if self._book_queue.full():
-            self._book_queue.get(block=False)
 
-        self._book_queue.put(book, block=False)
+        # 挿入できる余裕がない場合は、一つ削除する
+        if len(self._book_dict) > 100:
+            self._book_dict.clear()
+            # book_queueにbookを追加する
+
+        # すでに与えられたタグの本がキューに含まれている場合は、古い要素を削除する
+        self._book_dict[book.id] = book.readAt
 
         return
 
-    def get_books(self) -> List[Book]:
-        return list(self._book_queue.queue)
+    def get_books(self):
+        return self._book_dict
 
     def __repr__(self):
-        return (
-            f"State(person={self._person}, book_queue={list(self._book_queue.queue)})"
-        )
+        return f"State(person={self._person}, book_queue={repr(self._book_dict)})"
 
 
 if __name__ == "__main__":
