@@ -3,13 +3,13 @@ from flask import Flask
 import json
 import rsa
 import hashlib
-import pendulum
 from threading import Event
 from typing import Dict
 from state import State
 from rich.syntax import Syntax
 from logger import console
 import base64
+from datetime import datetime, timezone
 
 # 公開鍵と秘密鍵の読み込み
 
@@ -35,7 +35,7 @@ def server_worker(events: Dict[str, Event], state: State):
             return None
         return {
             "id": person.id,
-            "seenAt": person.seenAt.isoformat(),
+            "seenAt": person.seenAt.isoformat().replace("+00:00", "Z"),
         }
 
     def get_rfid_data():
@@ -51,7 +51,9 @@ def server_worker(events: Dict[str, Event], state: State):
         #     },
         # ]
         books = state.get_books()
-        serializable_books = {k: v.isoformat() for k, v in books.items()}
+        serializable_books = {
+            k: v.isoformat().replace("+00:00", "Z") for k, v in books.items()
+        }
         return serializable_books
 
     # Flaskのサーバーの定義
@@ -68,7 +70,7 @@ def server_worker(events: Dict[str, Event], state: State):
         data = {
             "person": face_data,
             "book": rfid_data,
-            "timestamp": pendulum.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
 
         # 署名を施す
@@ -102,7 +104,7 @@ def server_worker(events: Dict[str, Event], state: State):
             "person": face_data,
             "book": rfid_data,
             "confirm": True,
-            "timestamp": pendulum.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
 
         # 署名を施す

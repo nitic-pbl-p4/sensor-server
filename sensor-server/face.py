@@ -9,7 +9,7 @@ import pickle
 from threading import Event
 from typing import Dict
 from state import State
-import datetime
+from datetime import datetime, timezone
 from state import Person
 
 # assets/[personId]/[imageId].(png|jpg)
@@ -187,7 +187,7 @@ def face_recognition_worker(events: Dict[str, Event], state: State):
             # もし、最も面積の大きい顔が既知の顔だったら、状態を更新する
             if max_area_person_id:
                 state.person = Person(
-                    id=max_area_person_id, seenAt=datetime.datetime.now()
+                    id=max_area_person_id, seenAt=datetime.now(timezone.utc)
                 )
                 logging.info(f"顔認証の状態を更新しました: {highlighter(repr(state))}")
 
