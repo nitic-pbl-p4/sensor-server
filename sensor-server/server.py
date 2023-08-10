@@ -60,6 +60,11 @@ def server_worker(events: Dict[str, Event], state: State):
 
     app = Flask(__name__)
 
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        return response
+
     @app.route("/")
     def root_endpoint():
         # ここで顔認証とRFIDのデータを取得する処理を実装する
