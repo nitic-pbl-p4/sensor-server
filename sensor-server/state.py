@@ -31,6 +31,10 @@ class State:
         self._person: Optional[Person] = None
         self._book_dict = {}
 
+    def clear(self) -> None:
+        self._person = None
+        self._book_dict = {}
+
     @property
     def person(self) -> Optional[Person]:
         return self._person
