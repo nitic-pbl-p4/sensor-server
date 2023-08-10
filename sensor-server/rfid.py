@@ -24,15 +24,17 @@ def rfid_worker(events: Dict[str, Event], state: State):
 
         uid_length = 7 if len(read_possible_uid_bytes) >= 7 else 4
         uid_bytes = read_possible_uid_bytes[:uid_length]
-        uid_hex_string = ''.join(f'{byte:02x}' for byte in uid_bytes)
-        
+        uid_hex_string = "".join(f"{byte:02x}" for byte in uid_bytes)
+
         state.add_book(Book(id=uid_hex_string, readAt=datetime.datetime.now()))
-        logging.info(f"RFIDタグを読み取りました。 uid: {uid_hex_string} / {read_possible_uid_bytes}")
+        logging.info(
+            f"RFIDタグを読み取りました。 uid: {uid_hex_string} / {read_possible_uid_bytes}"
+        )
 
     # 'stop'イベントを受け取ったらクリーンアップ処理を行う
     logging.info("RFIDスレッドを終了します")
     GPIO.cleanup()
-    
+
 
 if __name__ == "__main__":
     # スレッド間で共有できる状態オブジェクトを生成する
