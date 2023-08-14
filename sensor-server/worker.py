@@ -3,15 +3,15 @@ import time
 from typing import Dict
 from logger import logging, console, highlighter
 from state import State, Person, Book
-import datetime
+from datetime import datetime, timezone
 import uuid
 
 
 def worker_sample1(events: Dict[str, Event], state: State):
     while not events["stop"].is_set():
         logging.info("状態を変更します")
-        state.person = Person(id="Reo", timestamp=datetime.datetime.now())
-        state.add_book(Book(id=f"{uuid.uuid4()}", timestamp=datetime.datetime.now()))
+        state.person = Person(id="Reo", timestamp=datetime.now(timezone.utc))
+        state.add_book(Book(id=f"{uuid.uuid4()}", timestamp=datetime.now(timezone.utc)))
         # ここで何かの処理を行う
         time.sleep(1)
 

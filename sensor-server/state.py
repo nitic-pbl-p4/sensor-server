@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from queue import Queue
 from logger import console, highlighter
 
@@ -29,6 +29,10 @@ class Book:
 class State:
     def __init__(self) -> None:
         self._person: Optional[Person] = None
+        self._book_dict = {}
+
+    def clear(self) -> None:
+        self._person = None
         self._book_dict = {}
 
     @property
@@ -70,10 +74,10 @@ class State:
 if __name__ == "__main__":
     my_obj = State()
 
-    my_obj.person = Person(id="123", seenAt=datetime.now())
+    my_obj.person = Person(id="123", seenAt=datetime.now(timezone.utc))
     console.log(f"my_obj.get_person(): {highlighter(repr(my_obj.get_person()))}")
 
     for i in range(120):
-        my_obj.add_book(Book(id=f"book{i}", readAt=datetime.now()))
+        my_obj.add_book(Book(id=f"book{i}", readAt=datetime.now(timezone.utc)))
 
     console.log(f"my_obj.get_books(): {highlighter(repr(my_obj.get_books()))}")
