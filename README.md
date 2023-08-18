@@ -18,9 +18,6 @@ git clone https://github.com/nitic-pbl-p4/sensor-server.git
 cd sensor-server
 ```
 
-そして、顔認証用ライブラリ`face_recognition`のために、`dlib`をインストールしましょう。
-詳しく (MacOS or Ubuntu): https://gist.github.com/ageitgey/629d75c1baac34dfa5ca2a1928a7aeaf
-詳しく (他の環境): https://github.com/ageitgey/face_recognition#installation
 
 最後に、`poetry`でこのプロジェクト用の Python の仮想環境を作成して、その後必要な依存関係をインストールします。
 
@@ -53,30 +50,63 @@ poetry config virtualenvs.path # /Users/ReoHakase/Library/Caches/pypoetry/virtua
 }
 ```
 
-## 訓練用の顔画像の置き方
+## 訓練の方法
 
-プロジェクトルート以下に、`assets/<個人のId>/<任意の名前>.(png|jpg|jpeg)`の形式で配置して下さい。
+sensor-server/face/images以下に、`<任意の名前>.(png|jpg|jpeg)`の形式で配置して下さい。
 
 ```bash
 .
-├── assets
-│  ├── aung
-│  │  └── IMG_6B07A8732E02-1.jpeg
-│  ├── maririhakuta
-│  │  └── IMG_1314.jpg
-│  ├── reohakuta
-│  │  └── IMG_1311.jpg
-│  └── yutoinoue
-│     └── IMG_1317.jpg
+├── sensor-server
+│   └── face
+│       ├── images
+│       │    ├── aung.jpeg
+│       │    ├── maririhakuta.jpg  
+│       │    ├── reohakuta.jpg
+│       │    └── yutoinoue.jpg
+│       ├── feature  
+│       ├── images_aligned
+│       ├── __init__.py
+│       └── main.py
 ├── poetry.lock
 ├── pyproject.toml
 ├── README.md
 ├── sensor-server
-│  ├── __init__.py
-│  └── main.py
 └── tests
    └── __init__.py
 ```
+
+画像を配置したら、以下のコマンドでfaceディレクトリに移動する。
+```bash
+cd sensor-server/face
+```
+#### 手順１：顔画像の切り取り
+以下のコマンドで、sensor-server/faceは以下のimagesディレクトリに保存されている画像から顔部分のみを切り取って、images_alignedに同じ名前で保存する。
+```bash
+python gen_aligned.py <任意の名前>.(png|jpg|jpeg)
+```
+また、上記のコマンドで画像名のみを引数として与えるものとする。
+
+例）
+
+```bash
+python gen_aligned.py aung.jpeg
+```
+
+#### 手順2：切り取った顔画像から特徴を抽出する
+以下のコマンドで、sensor-server/faceは以下のimages_alignedディレクトリに保存されている画像からから特徴量を抽出し、第２引数にはユーザのIDを指定する。
+
+```bash
+python gen_feature.py <任意の名前>.(png|jpg|jpeg)　ID
+```
+
+上記のようにすることで、sensor-server/face/feature配下に特徴量を保存したファイルが生成されまた、sensor-server/face/data配下のid.jsonにユーザー名とIDが紐づけられて保存される。
+
+例）
+
+```bash
+python gen_feature.py aung.jpeg IMG_6B07A8732E02-1
+```
+
 
 ## HTTP GET /
 
