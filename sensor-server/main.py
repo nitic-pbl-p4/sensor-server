@@ -1,7 +1,7 @@
 from threading import Thread, Event
 from logger import logging
 from state import State
-from face import face_recognition_worker
+from face.recognize import *
 from server import server_worker
 from rfid import rfid_worker
 
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # 顔認識スレッドはメインスレッドで実行する
     # GUIアプリケーションの場合は、メインスレッドで実行する必要がある
-    face_recognition_worker(events, state)
+    recognizer(events, state)
 
     logging.info("終了シグナルを送信します")
     events["stop"].set()
